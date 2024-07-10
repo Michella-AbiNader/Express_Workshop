@@ -5,6 +5,8 @@ const Products = require("../Services/ProductsService");
 const verifyUser = require("../Services/AuthService")
 const {authenticate, authorize} = require('../Services/AuthService');
 const tryCatch = require('../Services/Utils/TryCatch');
+const {validateProducts} = require('../Services/Utils/Validator')
+
 
 router.get(
     "/products",
@@ -16,22 +18,32 @@ router.get(
 }
 ));
 
-router.post('/products', authenticate, authorize(['admin']), tryCatch( (req, res)=>{ //or verifyUser instead of authenticate
+router.post(
+    '/products', 
+    authenticate, 
+    authorize(['admin']), 
+    validateProducts, 
+    tryCatch( (req, res)=>{ //or verifyUser instead of authenticate
         const body = req.body;
         Products.createProduct();
         return res.status(201).json({message: "product created"})
 }));
 
-router.put('/products', (req, res)=>{
+router.put(
+    '/products', 
+    authenticate, 
+    authorize(['admin']), 
+    validateProducts, 
+    tryCatch((req, res)=>{
     console.log(req.body);
     console.log(req.price)
     return res.status(201).json({message: "product updated"})
-});
+}));
 
-router.delete('/products', (req, res)=>{
+router.delete('/products', tryCatch((req, res)=>{
     console.log(req.body);
     console.log(req.price)
     return res.status(201).json({message: "product deleted"})
-});
+}));
 
 module.exports = router;
