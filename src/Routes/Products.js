@@ -14,7 +14,21 @@ router.get(
     authorize(['admin', 'staff']), 
     tryCatch( (request, response)=>{
     const json = Products.getProducts();
-    return response.status(200).json(json);
+    var result = {products: json}
+    return response.status(200).json(result);
+}
+));
+
+router.get(
+    "/products/:id",
+    authenticate, 
+    authorize(['admin', 'staff']), 
+    tryCatch( (request, response)=>{
+    const product = Products.getProductById(request.params.id);
+    if(!product){
+        return response.status(404).json({message: "product not found"})
+    }
+    return response.status(200).json(product);
 }
 ));
 
@@ -25,25 +39,30 @@ router.post(
     validateProducts, 
     tryCatch( (req, res)=>{ //or verifyUser instead of authenticate
         const body = req.body;
-        Products.createProduct();
+        Products.createProduct(body);
         return res.status(201).json({message: "product created"})
 }));
 
 router.put(
-    '/products', 
+    '/products/:id', 
     authenticate, 
     authorize(['admin']), 
     validateProducts, 
     tryCatch((req, res)=>{
-    console.log(req.body);
-    console.log(req.price)
-    return res.status(201).json({message: "product updated"})
+        const id =req.params.id;
+        const updated = Products.updateProduct(id, req.body)
+        if(!updated){
+            return res.status(400).json({message: "product not found"})
+        }
+        return res.status(200).json({message: "product updated"})
 }));
 
-router.delete('/products', tryCatch((req, res)=>{
-    console.log(req.body);
-    console.log(req.price)
-    return res.status(201).json({message: "product deleted"})
+router.delete('/products/:id', tryCatch((req, res)=>{
+    const updated = Products.deleteProduct(req.params.id)
+    if(!updated){
+        return res.status(400).json({message: "product not found"})
+    }
+    return res.status(204).json({message: "product deleted"})
 }));
 
 module.exports = router;
